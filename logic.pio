@@ -1,0 +1,39 @@
+.program logic
+start:
+    mov y, pins                                                ;0 / 8
+    mov osr, ~null  ; osr has loop counter                     ;1
+output:
+    mov x, y                                                   ;2
+    in osr, 8       ; push loop counter                        ;3
+    in x, 8         ; push latest pins                         ;4
+    out y, 8        ; osr ==> y has loop counter - 8 bits=255  ;5
+    jmp y-- loop                                               ;6
+    jmp start                                                  ;7
+loop:
+    mov osr, y      ; y ==> osr has loop counter               ;7
+    mov y, pins                                                ;0 / 8
+    jmp x!=y output                                            ;1
+    nop [3]                                                    ;2 3 4 
+    mov y, osr      ; osr ==> y has loop counter               ;5           
+    jmp y-- loop                                               ;6
+    jmp start                                                  ;7
+
+
+
+% c-sdk {
+static inline void logic_program_init(PIO pio, uint sm, uint offset, uint pin_base, float div) {
+    pio_sm_config c = logic_program_get_default_config(offset);
+
+    sm_config_set_in_pins(&c, pin_base); // for WAIT
+    sm_config_set_in_shift(&c, true, true, 32);
+    sm_config_set_out_shift(&c, false, false, 32);
+
+    // Set the pin direction to input at the PIO
+    pio_sm_set_consecutive_pindirs(pio, sm, pin_base, 8, false);
+    sm_config_set_clkdiv(&c, div);
+    // Load our configuration, and jump to the start of the program
+    pio_sm_init(pio, sm, offset, &c);
+    // Set the state machine running
+    pio_sm_set_enabled(pio, sm, true);
+}
+%}

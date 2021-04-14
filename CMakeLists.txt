@@ -1,0 +1,15 @@
+cmake_minimum_required(VERSION 3.13)
+include(pico_sdk_import.cmake)
+project(pico_logic VERSION 0.1.0 LANGUAGES C CXX ASM)
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
+pico_sdk_init()
+add_executable(pico_logic)
+pico_generate_pio_header(pico_logic ${CMAKE_CURRENT_LIST_DIR}/logic.pio)
+
+target_sources(pico_logic PRIVATE pico_logic.c)
+
+target_link_libraries(pico_logic PRIVATE pico_stdlib hardware_pio hardware_dma)
+pico_enable_stdio_usb(pico_logic 1)
+pico_enable_stdio_uart(pico_logic 0)
+pico_add_extra_outputs(pico_logic)
