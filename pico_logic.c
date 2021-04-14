@@ -166,17 +166,14 @@ int main() {
     // printf("PIO logic program loaded at %d\n", offset);
     // sleep_ms(2000);
     // Configure state machines, set bit rate at 5 Mbps
-    float sampling_msps = 2;
-    if (0) {
+    
+    if (1) {
+        float sampling_msps = 1.6;
         logic_program_init(pio, sm, offset, pin_start, 125.f / (8 * sampling_msps));
     } else {
-        // Full speed
+        // Full speed - 15.625 Msamples/second
         logic_program_init(pio, sm, offset, pin_start, 1.f);
     }
-    // This is dumb... Only way I can figure out how to get an aligned buffer
-    // is by allocating twice its size. This is needed for DMA ring.
-    // uint32_t *capture_buf = malloc(buffer_size*2);
-    // capture_buf = (uint32_t *)(((uint32_t)capture_buf + buffer_size) & ~(buffer_size-1));
 
     hard_assert(capture_buffer);
 

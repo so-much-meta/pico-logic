@@ -1,3 +1,23 @@
+; This is a PIO program that reads pins and then outputs (timestamp, gpio) - 2 bytes -
+; to DMA on changes
+
+; To clarify, it does the following:
+; Starts a loop counter at 255 and iterates down to 0 (256 iterations)
+; each iteration it will read a value
+; if (loop_counter == 255 or  value != old_value):
+;    output_to_dma(loop_counter, value)
+;    old_value = value
+; 
+; So it always outputs at loop_counter==255 (once every 256 reads)
+; and sometimes in between, if something happened to change
+; So this is very much like RLE encoding
+;
+; There are exactly 8 cycles between GPIO reads, so at normal speed, 125Mhz,
+; this will read 15.625 M samples/second
+; This can be slowed down using the 16.8 clock divider
+; 
+
+
 .program logic
 start:
     mov y, pins                                                ;0 / 8
@@ -13,7 +33,7 @@ loop:
     mov osr, y      ; y ==> osr has loop counter               ;7
     mov y, pins                                                ;0 / 8
     jmp x!=y output                                            ;1
-    nop [3]                                                    ;2 3 4 
+    nop [2]                                                    ;2 3 4 
     mov y, osr      ; osr ==> y has loop counter               ;5           
     jmp y-- loop                                               ;6
     jmp start                                                  ;7
